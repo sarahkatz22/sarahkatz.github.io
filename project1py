@@ -1,0 +1,50 @@
+import requests
+from bs4 import BeautifulSoup
+
+# 1. Create Beautiful Soup objects for each website to parse the HTML content:
+
+URL1 = "https://www.speedcubes.co.za/12-2x2x2"
+page1 = requests.get(URL1)
+soup1 = BeautifulSoup(page1.content, "html.parser")
+
+URL2 = "https://cubeco.co.za/collections/2x2"
+page2 = requests.get(URL2)
+soup2 = BeautifulSoup(page2.content, "html.parser")
+
+# Product comparison: 
+products1 = soup1.find_all('article')
+products2 = soup2.find_all('a')
+
+dict1 = {}
+
+for product1 in products1: 
+    title1 = product1.find('h2', class_='h3 product-title').text.strip()
+    price1 = product1.find('span', class_='price').text.strip()
+    dict1[title1] = [price1[1:]]
+
+for product2 in products2: 
+    title2 = product2.find('p', class_='grid-link__title').text.strip()
+    price2 = product2.find('p', class_='grid-link__meta').text.strip()
+
+    for key, val in dict1.items(): 
+        if title2 in key: 
+            dict1[key].append(price2)
+
+risk_products = []
+safe_products = []
+
+for key, val in dict1.items():
+    val_num = list(map(float, val)) 
+    if len(val_num) > 1:
+        if val_num[0] > val_num[1]: 
+            risk_products.append(key)
+        elif val_num[1] >= val_num[0]: 
+            safe_products.append(key)
+        
+print(risk_products)
+print(safe_products)
+
+
+
+
+
