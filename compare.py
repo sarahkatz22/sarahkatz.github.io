@@ -4,18 +4,21 @@ from bs4 import BeautifulSoup
 from fuzzywuzzy import fuzz
 import difflib
 
-# 1. Create Beautiful Soup objects for each website to parse the HTML content:
+def get_soup(url):
+    """
+    Creates Beautiful Soup object from a URL to parse its HTML content. 
+    Returns soup. 
+    """ 
+    URL = f'{url}'
+    page = requests.get(URL)
+    soup = BeautifulSoup(page.content, "html.parser")
+    return soup
 
-URL1 = "https://www.speedcubes.co.za/12-2x2x2"
-page1 = requests.get(URL1)
-soup1 = BeautifulSoup(page1.content, "html.parser")
-
-URL2 = "https://cubeco.co.za/collections/2x2"
-page2 = requests.get(URL2)
-soup2 = BeautifulSoup(page2.content, "html.parser")
-
-# Function to find the best matching product name
 def find_matching_product(target_product, product_list, threshold):
+    """
+    Finds the best matching product to the target product name from a given product list, 
+    based on the SequenceMatcher algorithm, using a given threshold. 
+    """ 
     best_match = None
     best_ratio = 0
 
@@ -31,54 +34,75 @@ def find_matching_product(target_product, product_list, threshold):
     else:
         return best_match
 
-# Product comparison: 
-products1 = soup1.find_all('article')
-products2 = soup2.find('div', class_="grid-uniform grid-link__container")
+def product_comparision(soup1, soup2): 
+    products1 = soup1.find_all('article')
+    products2 = soup2.find('div', class_="grid-uniform grid-link__container")
 
-dict1 = {}
+    dict1 = {}
 
-for product1 in products1: 
-    title1 = product1.find('h2', class_='h3 product-title').text.strip()
-    price1 = product1.find('span', class_='price').text.strip()
-    dict1[title1[:-3]] = [price1[1:]]
+    for product1 in products1: 
+        title1 = product1.find('h2', class_='h3 product-title').text.strip()
+        price1 = product1.find('span', class_='price').text.strip()
+        dict1[title1[:-3]] = [price1[1:]]
 
-list2 = []
-dict2 = {}
-for product2 in products2.find_all('div', class_="grid__item wide--one-fifth large--one-quarter medium-down--one-half"): 
+    list2 = []
+    dict2 = {}
+    for product2 in products2.find_all('div', class_="grid__item wide--one-fifth large--one-quarter medium-down--one-half"): 
 
-    title2 = product2.find('p', class_='grid-link__title')
-    title2_text = title2.get_text(strip=True)
-    list2.append(title2_text)
+        title2 = product2.find('p', class_='grid-link__title')
+        title2_text = title2.get_text(strip=True)
+        list2.append(title2_text)
 
-    price2 = product2.find('p', class_='grid-link__meta')
-    price2_text = price2.contents[-1].strip()
+        price2 = product2.find('p', class_='grid-link__meta')
+        price2_text = price2.contents[-1].strip()
 
-    dict2[title2_text] = price2_text[2:]
+        dict2[title2_text] = price2_text[2:]
 
-print(dict1)
-print(list2)
+    for key, val in dict1.items():
+        match = find_matching_product(key, list2, 0.605) 
+        if match != None: 
+            dict1[key].append(dict2[match])
 
-for key, val in dict1.items():
-    match = find_matching_product(key, list2, 0.605) 
-    if match != None: 
-        dict1[key].append(dict2[match])
+    return dict1
 
-risk_products = []
-safe_products = []
+def str_to_float(dict): 
+    new_dict = {}
+    for key, val in dict.items(): 
+        n_val = [(item.replace(',', '')) for item in val]
+        l_num = list(map(float, n_val)) 
+        new_dict[key] = l_num
+    
+    return new_dict
 
 
+def at_risk(soup1, soup2): 
 
-for key, val in dict1.items():
-    val_num = list(map(float, val)) 
-    if len(val_num) > 1:
-        if val_num[0] > val_num[1]: 
-            risk_products.append(key)
-        elif val_num[1] >= val_num[0]: 
-            safe_products.append(key)
+    risk_products = []
 
-print(risk_products)
-print(safe_products)
+    d1 = product_comparision(soup1, soup2)
+    n_dict = str_to_float(d1)
 
+    for key, val in n_dict.items():
+        if len(val) > 1:
+            if val[0] > val[1]: 
+                risk_products.append(key)
+
+    return risk_products 
+     
+
+def safe(soup1, soup2):
+
+    safe_products = []
+
+    d1 = product_comparision(soup1, soup2)
+    n_dict = str_to_float(d1)
+    
+    for key, val in n_dict.items():
+        if len(val) > 1:
+            if val[1] >= val[0]: 
+                safe_products.append(key)
+    
+    return safe_products
 
 
 
