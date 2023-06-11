@@ -1,12 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <title>Welcome to my Website!</title>
+    <title>Comparison Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+    <script src="compare.js"></script>
 </head>
 <body>
-    <h1 style="font-size: 60px;"> ABOUT ME </h1>
-    <p style="color: blue; font-family: Impact"> My name is Sarah Katz and my favorite colour is Green. </p>
-    <a href="https://www.w3schools.com/html/html_basic.asp">This is a link <br></a>
-    <img src="https://www.thesprucepets.com/thmb/YBO6dLNaRUrr34ra0W4KGim00q4=/6411x0/filters:no_upscale():strip_icc()/puppies-three-to-six-months-4570930-hero-bf2f59d75dcb4294991d6bd8cd51ec7c.jpg" alt="puppy" width="350" height="250">
+    <div class="container">
+        <label for="value1">First Website:</label>
+        <input type="text" id="value1">
+        
+        <label for="value2">Second Website:</label>
+        <input type="text" id="value2">
+        
+        <button onclick="submitForm()">Compare</button>
+        
+        <div class="result" id="result"></div>
+    </div>
 </body>
 </html>
