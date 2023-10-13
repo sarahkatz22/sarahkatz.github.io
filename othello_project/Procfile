@@ -1,6 +1,6 @@
 web: python3 app.py
-
-
+web: gunicorn app.wsgi
+web: gunicorn hello:app
 
 
 
