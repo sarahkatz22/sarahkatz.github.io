@@ -1,5 +1,8 @@
 import os
 import sys
+import threading
+import requests
+import socketio
 
 project_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.append(project_dir)
@@ -7,11 +10,32 @@ sys.path.append(project_dir)
 from typing import List, Tuple
 from math import sqrt
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-import pygame  # pylint: disable=wrong-import-position
+import pygame
+from pygame.locals import *
 import click 
 from othello_project.gui.reversi import Reversi, ReversiPiece
 from typing import Optional
-import requests
+
+
+# Set up your HTML canvas size (adjust as needed)
+canvas_width, canvas_height = 600, 600
+
+
+sio = socketio.Client()
+
+def send_message_to_server(message):
+    sio.emit('message_from_client', message)
+
+def handle_server_message(message):
+    # Handle messages received from the server (e.g., updates from other clients)
+    pass
+
+sio.connect('http://127.0.0.1:5000')
+
+@sio.on('message_from_server')
+def handle_message_from_server(message):
+    # Handle messages received from the server
+    handle_server_message(message)
 
 class GUI_it:
     """
@@ -50,9 +74,9 @@ class GUI_it:
 
         self.game: Reversi = game
 
-        #Music
-        pygame.mixer.music.load("othello_project/gui/media/bg_music.mp3", "mp3")
-        pygame.mixer.music.play(-1, start = 0.0, fade_ms=0)
+        # #Music
+        # pygame.mixer.music.load("othello_project/gui/media/bg_music.mp3", "mp3")
+        # pygame.mixer.music.play(-1, start = 0.0, fade_ms=0)
 
         self.initialize_game_state()
 
@@ -224,6 +248,7 @@ class GUI_it:
                 self.draw_window(game)
                 pygame.display.update()
                 self.clock.tick(24) 
+
     def send_game_state(self, game_state):
         # Make an HTTP POST request to the Flask API endpoint to update the game state
         # Example:
@@ -242,6 +267,12 @@ def cmd(board_size, num_players, othello):
     try:
         board = Reversi(board_size, num_players, othello)
         gui_it: GUI_it = GUI_it(game = board)
+
+
+        pygame_thread = threading.Thread(target=pygame_event_loop, args=(board,))
+        pygame_thread.daemon = True  # Allow the thread to exit when the main program exits
+        pygame_thread.start()
+
         gui_it.event_loop(board)
     except ValueError:
         print("Input is invalid")
